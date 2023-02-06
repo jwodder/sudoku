@@ -1,10 +1,12 @@
 use std::fmt;
 
-#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Puzzle([[u8; 9]; 9]);
+static DIVIDER: &str = "+-----+-----+-----+";
 
-/// Counts the amount of cells of each numeric value that "obstruct" a given
-/// cell
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
+pub struct Puzzle([[u8; 9]; 9]); // Unfilled cells are represented by 0
+
+/// Counts the amount of cells (max value 3) of each numeric value that
+/// "obstruct" a given cell
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 struct Obstruction([u8; 9]);
 
@@ -160,10 +162,34 @@ impl Puzzle {
 
 impl fmt::Display for Puzzle {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // If f.alternate(), draw borders and column gaps and leave unfilled
-        // cells as whitespace.
-        // Otherwise, draw unfilled cells as 0
-        todo!()
+        if f.alternate() {
+            for y in 0..9 {
+                if y % 3 == 0 {
+                    writeln!(f, "{DIVIDER}")?;
+                }
+                for x in 0..9 {
+                    write!(f, "{}", if x % 3 == 0 { '|' } else { ' ' })?;
+                    let c = self.0[y][x];
+                    if c == 0 {
+                        write!(f, " ")?;
+                    } else {
+                        write!(f, "{c}")?;
+                    }
+                }
+                writeln!(f, "|")?;
+            }
+            write!(f, "{DIVIDER}")?;
+        } else {
+            for y in 0..9 {
+                if y > 0 {
+                    writeln!(f)?;
+                }
+                for x in 0..9 {
+                    write!(f, "{}", self.0[y][x])?;
+                }
+            }
+        }
+        Ok(())
     }
 }
 
@@ -175,7 +201,126 @@ pub struct Solution([[u8; 9]; 9]);
 
 impl fmt::Display for Solution {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // If f.alternate(), draw borders and column gaps
-        todo!()
+        if f.alternate() {
+            for y in 0..9 {
+                if y % 3 == 0 {
+                    writeln!(f, "{DIVIDER}")?;
+                }
+                for x in 0..9 {
+                    write!(f, "{}{}", if x % 3 == 0 { '|' } else { ' ' }, self.0[y][x])?;
+                }
+                writeln!(f, "|")?;
+            }
+            write!(f, "{DIVIDER}")?;
+        } else {
+            for y in 0..9 {
+                if y > 0 {
+                    writeln!(f)?;
+                }
+                for x in 0..9 {
+                    write!(f, "{}", self.0[y][x])?;
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_display_puzzle() {
+        let puzzle = Puzzle([
+            [0, 0, 3, 0, 2, 0, 6, 0, 0],
+            [9, 0, 0, 3, 0, 5, 0, 0, 1],
+            [0, 0, 1, 8, 0, 6, 4, 0, 0],
+            [0, 0, 8, 1, 0, 2, 9, 0, 0],
+            [7, 0, 0, 0, 0, 0, 0, 0, 8],
+            [0, 0, 6, 7, 0, 8, 2, 0, 0],
+            [0, 0, 2, 6, 0, 9, 5, 0, 0],
+            [8, 0, 0, 2, 0, 3, 0, 0, 9],
+            [0, 0, 5, 0, 1, 0, 3, 0, 0],
+        ]);
+        assert_eq!(
+            puzzle.to_string(),
+            concat!(
+                "003020600\n",
+                "900305001\n",
+                "001806400\n",
+                "008102900\n",
+                "700000008\n",
+                "006708200\n",
+                "002609500\n",
+                "800203009\n",
+                "005010300",
+            )
+        );
+        assert_eq!(
+            format!("{puzzle:#}"),
+            concat!(
+                "+-----+-----+-----+\n",
+                "|    3|  2  |6    |\n",
+                "|9    |3   5|    1|\n",
+                "|    1|8   6|4    |\n",
+                "+-----+-----+-----+\n",
+                "|    8|1   2|9    |\n",
+                "|7    |     |    8|\n",
+                "|    6|7   8|2    |\n",
+                "+-----+-----+-----+\n",
+                "|    2|6   9|5    |\n",
+                "|8    |2   3|    9|\n",
+                "|    5|  1  |3    |\n",
+                "+-----+-----+-----+",
+            ),
+        );
+    }
+
+    #[test]
+    fn test_display_solution() {
+        let solution = Solution([
+            [4, 8, 3, 9, 2, 1, 6, 5, 7],
+            [9, 6, 7, 3, 4, 5, 8, 2, 1],
+            [2, 5, 1, 8, 7, 6, 4, 9, 3],
+            [5, 4, 8, 1, 3, 2, 9, 7, 6],
+            [7, 2, 9, 5, 6, 4, 1, 3, 8],
+            [1, 3, 6, 7, 9, 8, 2, 4, 5],
+            [3, 7, 2, 6, 8, 9, 5, 1, 4],
+            [8, 1, 4, 2, 5, 3, 7, 6, 9],
+            [6, 9, 5, 4, 1, 7, 3, 8, 2],
+        ]);
+        assert_eq!(
+            solution.to_string(),
+            concat!(
+                "483921657\n",
+                "967345821\n",
+                "251876493\n",
+                "548132976\n",
+                "729564138\n",
+                "136798245\n",
+                "372689514\n",
+                "814253769\n",
+                "695417382",
+            )
+        );
+        assert_eq!(
+            format!("{solution:#}"),
+            concat!(
+                "+-----+-----+-----+\n",
+                "|4 8 3|9 2 1|6 5 7|\n",
+                "|9 6 7|3 4 5|8 2 1|\n",
+                "|2 5 1|8 7 6|4 9 3|\n",
+                "+-----+-----+-----+\n",
+                "|5 4 8|1 3 2|9 7 6|\n",
+                "|7 2 9|5 6 4|1 3 8|\n",
+                "|1 3 6|7 9 8|2 4 5|\n",
+                "+-----+-----+-----+\n",
+                "|3 7 2|6 8 9|5 1 4|\n",
+                "|8 1 4|2 5 3|7 6 9|\n",
+                "|6 9 5|4 1 7|3 8 2|\n",
+                "+-----+-----+-----+",
+            )
+        );
     }
 }

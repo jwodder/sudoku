@@ -1,4 +1,6 @@
 use std::fmt;
+use std::str::FromStr;
+use thiserror::Error;
 
 static DIVIDER: &str = "+-----+-----+-----+";
 
@@ -20,7 +22,6 @@ impl Obstruction {
     }
 
     fn remove(&mut self, number: u8) {
-        // TODO: Guard against underflow?
         self.0[usize::from(number) - 1] -= 1;
     }
 
@@ -164,8 +165,76 @@ impl Puzzle {
     }
 }
 
-// TODO: Give Puzzle a TryFrom<(some sort of 2D array)> impl
-// TODO: Give Puzzle a FromStr impl that ignores horizontal whitespace and treats 0's and nondigits as unfilled cells
+#[derive(Debug, Error)]
+pub enum TryIntoPuzzleError {
+    #[error("Cell value {0} is too large")]
+    NumTooBig(u8),
+    #[error("Row not 9 cells long")]
+    BadRowSize,
+    #[error("Grid not 9 rows long")]
+    BadGridSize,
+}
+
+impl TryFrom<[[u8; 9]; 9]> for Puzzle {
+    type Error = TryIntoPuzzleError;
+
+    fn try_from(value: [[u8; 9]; 9]) -> Result<Puzzle, TryIntoPuzzleError> {
+        for row in &value {
+            for &cell in row {
+                if cell > 9 {
+                    return Err(TryIntoPuzzleError::NumTooBig(cell));
+                }
+            }
+        }
+        Ok(Puzzle(value))
+    }
+}
+
+impl<T: AsRef<[u8]>> TryFrom<&[T]> for Puzzle {
+    type Error = TryIntoPuzzleError;
+
+    fn try_from(value: &[T]) -> Result<Puzzle, TryIntoPuzzleError> {
+        let mut grid = Vec::with_capacity(9);
+        for row in value {
+            let row =
+                <[u8; 9]>::try_from(row.as_ref()).map_err(|_| TryIntoPuzzleError::BadRowSize)?;
+            grid.push(row);
+        }
+        <[[u8; 9]; 9]>::try_from(grid.as_slice())
+            .map_err(|_| TryIntoPuzzleError::BadGridSize)?
+            .try_into()
+    }
+}
+
+impl<T: AsRef<[u8]>> TryFrom<Vec<T>> for Puzzle {
+    type Error = TryIntoPuzzleError;
+
+    fn try_from(v: Vec<T>) -> Result<Puzzle, TryIntoPuzzleError> {
+        Puzzle::try_from(&v[..])
+    }
+}
+
+// ignores horizontal whitespace and treats 0's and nondigits as unfilled cells
+impl FromStr for Puzzle {
+    type Err = TryIntoPuzzleError;
+
+    fn from_str(s: &str) -> Result<Puzzle, TryIntoPuzzleError> {
+        let mut grid = Vec::with_capacity(9);
+        for line in s.lines() {
+            let mut row = Vec::with_capacity(9);
+            for c in line.chars() {
+                if let Some(x) = c.to_digit(10) {
+                    row.push(u8::try_from(x).unwrap());
+                } else if !c.is_whitespace() {
+                    row.push(0);
+                }
+            }
+            grid.push(row);
+        }
+        grid.try_into()
+    }
+}
+
 // TODO: Give Puzzle something for accessing individual cells?
 
 impl fmt::Display for Puzzle {
@@ -411,5 +480,61 @@ mod test {
             [5, 1, 7, 6, 4, 3, 8, 9, 2],
         ]);
         assert_eq!(puzzle.solve().unwrap(), solution);
+    }
+
+    #[test]
+    fn test_try_from_array() {
+        let p1 = Puzzle::try_from([
+            [0, 0, 3, 0, 2, 0, 6, 0, 0],
+            [9, 0, 0, 3, 0, 5, 0, 0, 1],
+            [0, 0, 1, 8, 0, 6, 4, 0, 0],
+            [0, 0, 8, 1, 0, 2, 9, 0, 0],
+            [7, 0, 0, 0, 0, 0, 0, 0, 8],
+            [0, 0, 6, 7, 0, 8, 2, 0, 0],
+            [0, 0, 2, 6, 0, 9, 5, 0, 0],
+            [8, 0, 0, 2, 0, 3, 0, 0, 9],
+            [0, 0, 5, 0, 1, 0, 3, 0, 0],
+        ])
+        .unwrap();
+        let p2 = Puzzle([
+            [0, 0, 3, 0, 2, 0, 6, 0, 0],
+            [9, 0, 0, 3, 0, 5, 0, 0, 1],
+            [0, 0, 1, 8, 0, 6, 4, 0, 0],
+            [0, 0, 8, 1, 0, 2, 9, 0, 0],
+            [7, 0, 0, 0, 0, 0, 0, 0, 8],
+            [0, 0, 6, 7, 0, 8, 2, 0, 0],
+            [0, 0, 2, 6, 0, 9, 5, 0, 0],
+            [8, 0, 0, 2, 0, 3, 0, 0, 9],
+            [0, 0, 5, 0, 1, 0, 3, 0, 0],
+        ]);
+        assert_eq!(p1, p2);
+    }
+
+    #[test]
+    fn test_try_from_vec() {
+        let p1 = Puzzle::try_from(vec![
+            vec![0, 0, 3, 0, 2, 0, 6, 0, 0],
+            vec![9, 0, 0, 3, 0, 5, 0, 0, 1],
+            vec![0, 0, 1, 8, 0, 6, 4, 0, 0],
+            vec![0, 0, 8, 1, 0, 2, 9, 0, 0],
+            vec![7, 0, 0, 0, 0, 0, 0, 0, 8],
+            vec![0, 0, 6, 7, 0, 8, 2, 0, 0],
+            vec![0, 0, 2, 6, 0, 9, 5, 0, 0],
+            vec![8, 0, 0, 2, 0, 3, 0, 0, 9],
+            vec![0, 0, 5, 0, 1, 0, 3, 0, 0],
+        ])
+        .unwrap();
+        let p2 = Puzzle([
+            [0, 0, 3, 0, 2, 0, 6, 0, 0],
+            [9, 0, 0, 3, 0, 5, 0, 0, 1],
+            [0, 0, 1, 8, 0, 6, 4, 0, 0],
+            [0, 0, 8, 1, 0, 2, 9, 0, 0],
+            [7, 0, 0, 0, 0, 0, 0, 0, 8],
+            [0, 0, 6, 7, 0, 8, 2, 0, 0],
+            [0, 0, 2, 6, 0, 9, 5, 0, 0],
+            [8, 0, 0, 2, 0, 3, 0, 0, 9],
+            [0, 0, 5, 0, 1, 0, 3, 0, 0],
+        ]);
+        assert_eq!(p1, p2);
     }
 }

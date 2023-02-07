@@ -1,4 +1,5 @@
 use std::fmt;
+use std::ops::Deref;
 use std::str::FromStr;
 use thiserror::Error;
 
@@ -237,7 +238,13 @@ impl FromStr for Puzzle {
     }
 }
 
-// TODO: Give Puzzle something for accessing individual cells?
+impl Deref for Puzzle {
+    type Target = [[u8; 9]; 9];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 impl fmt::Display for Puzzle {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -275,7 +282,13 @@ impl fmt::Display for Puzzle {
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Solution([[u8; 9]; 9]);
 
-// TODO: Give Solution something for accessing individual cells
+impl Deref for Solution {
+    type Target = [[u8; 9]; 9];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 impl From<Solution> for [[u8; 9]; 9] {
     fn from(value: Solution) -> [[u8; 9]; 9] {
@@ -665,5 +678,41 @@ mod test {
             [0, 0, 4, 0, 9, 2, 0, 0, 0],
         ]);
         assert_eq!(s.parse::<Puzzle>().unwrap(), puzzle);
+    }
+
+    #[test]
+    fn test_index_puzzle() {
+        let puzzle = Puzzle([
+            [0, 0, 3, 0, 2, 0, 6, 0, 0],
+            [9, 0, 0, 3, 0, 5, 0, 0, 1],
+            [0, 0, 1, 8, 0, 6, 4, 0, 0],
+            [0, 0, 8, 1, 0, 2, 9, 0, 0],
+            [7, 0, 0, 0, 0, 0, 0, 0, 8],
+            [0, 0, 6, 7, 0, 8, 2, 0, 0],
+            [0, 0, 2, 6, 0, 9, 5, 0, 0],
+            [8, 0, 0, 2, 0, 3, 0, 0, 9],
+            [0, 0, 5, 0, 1, 0, 3, 0, 0],
+        ]);
+        assert_eq!(puzzle[0], [0, 0, 3, 0, 2, 0, 6, 0, 0]);
+        assert_eq!(puzzle[0][2], 3);
+        assert_eq!(puzzle[8], [0, 0, 5, 0, 1, 0, 3, 0, 0]);
+    }
+
+    #[test]
+    fn test_index_solution() {
+        let solution = Solution([
+            [4, 8, 3, 9, 2, 1, 6, 5, 7],
+            [9, 6, 7, 3, 4, 5, 8, 2, 1],
+            [2, 5, 1, 8, 7, 6, 4, 9, 3],
+            [5, 4, 8, 1, 3, 2, 9, 7, 6],
+            [7, 2, 9, 5, 6, 4, 1, 3, 8],
+            [1, 3, 6, 7, 9, 8, 2, 4, 5],
+            [3, 7, 2, 6, 8, 9, 5, 1, 4],
+            [8, 1, 4, 2, 5, 3, 7, 6, 9],
+            [6, 9, 5, 4, 1, 7, 3, 8, 2],
+        ]);
+        assert_eq!(solution[0], [4, 8, 3, 9, 2, 1, 6, 5, 7]);
+        assert_eq!(solution[0][1], 8);
+        assert_eq!(solution[8], [6, 9, 5, 4, 1, 7, 3, 8, 2]);
     }
 }

@@ -486,6 +486,7 @@ mod test {
 
     #[test]
     fn test_solve_ambiguous() {
+        // From <https://math.stackexchange.com/a/345255/10655>
         let puzzle = Puzzle([
             [1, 4, 5, 3, 2, 7, 6, 9, 8],
             [8, 3, 9, 6, 5, 4, 1, 2, 7],
@@ -503,6 +504,23 @@ mod test {
                 assert_ne!(c, 0);
             }
         }
+    }
+
+    #[test]
+    fn test_solve_unsolvable() {
+        // From <https://www.reddit.com/r/sudoku/comments/7q76ay/>
+        let puzzle = Puzzle([
+            [2, 0, 0, 9, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 6, 0],
+            [0, 0, 0, 0, 0, 1, 0, 0, 0],
+            [5, 0, 2, 6, 0, 0, 4, 0, 7],
+            [0, 0, 0, 0, 0, 4, 1, 0, 0],
+            [0, 0, 0, 0, 9, 8, 0, 2, 3],
+            [0, 0, 0, 0, 0, 3, 0, 8, 0],
+            [0, 0, 5, 0, 1, 0, 0, 0, 0],
+            [0, 0, 7, 0, 0, 0, 0, 0, 0],
+        ]);
+        assert_eq!(puzzle.solve(), None);
     }
 
     #[test]

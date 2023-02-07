@@ -276,7 +276,12 @@ impl fmt::Display for Puzzle {
 pub struct Solution([[u8; 9]; 9]);
 
 // TODO: Give Solution something for accessing individual cells
-// TODO: impl From<Solution> for [[u8; 9]; 9] ?
+
+impl From<Solution> for [[u8; 9]; 9] {
+    fn from(value: Solution) -> [[u8; 9]; 9] {
+        value.0
+    }
+}
 
 impl fmt::Display for Solution {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

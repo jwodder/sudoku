@@ -485,6 +485,27 @@ mod test {
     }
 
     #[test]
+    fn test_solve_ambiguous() {
+        let puzzle = Puzzle([
+            [1, 4, 5, 3, 2, 7, 6, 9, 8],
+            [8, 3, 9, 6, 5, 4, 1, 2, 7],
+            [6, 7, 2, 9, 1, 8, 5, 4, 3],
+            [4, 9, 6, 0, 8, 5, 3, 7, 0],
+            [2, 1, 8, 4, 7, 3, 9, 5, 6],
+            [7, 5, 3, 0, 9, 6, 4, 8, 0],
+            [3, 6, 7, 5, 4, 2, 8, 1, 9],
+            [9, 8, 4, 7, 6, 1, 2, 3, 5],
+            [5, 2, 1, 8, 3, 9, 7, 6, 4],
+        ]);
+        let Solution(grid) = puzzle.solve().unwrap();
+        for row in grid {
+            for c in row {
+                assert_ne!(c, 0);
+            }
+        }
+    }
+
+    #[test]
     fn test_try_from_array() {
         let p1 = Puzzle::try_from([
             [0, 0, 3, 0, 2, 0, 6, 0, 0],

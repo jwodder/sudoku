@@ -43,10 +43,19 @@ struct InProgress {
 
 impl InProgress {
     fn new(p: &Puzzle) -> Self {
-        Self {
+        let mut scratch = Self {
             obstructions: [[Some(Obstruction::new()); 9]; 9],
             puzzle: p.0,
+        };
+        for i in 0..9 {
+            for j in 0..9 {
+                if scratch.puzzle[i][j] != 0 {
+                    scratch.obstructions[i][j] = None;
+                    scratch.add_obstruction(i, j);
+                }
+            }
         }
+        scratch
     }
 
     fn adjust_obstruction<F>(&mut self, func: &F, y: usize, x: usize)
@@ -94,14 +103,6 @@ impl InProgress {
 impl Puzzle {
     pub fn solve(&self) -> Option<Solution> {
         let mut scratch = InProgress::new(self);
-        for i in 0..9 {
-            for j in 0..9 {
-                if scratch.puzzle[i][j] != 0 {
-                    scratch.obstructions[i][j] = None;
-                    scratch.add_obstruction(i, j);
-                }
-            }
-        }
         let mut i = 0;
         'iloop: while i < 9 {
             let mut j = 0;

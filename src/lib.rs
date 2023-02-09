@@ -365,6 +365,8 @@ impl Deref for Puzzle {
 /// |    5|  1  |3    |
 /// +-----+-----+-----+
 /// ```
+///
+/// Both forms lack a final terminating newline.
 impl fmt::Display for Puzzle {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if f.alternate() {
@@ -457,6 +459,8 @@ impl From<Solution> for [[u8; 9]; 9] {
 /// |6 9 5|4 1 7|3 8 2|
 /// +-----+-----+-----+
 /// ```
+///
+/// Both forms lack a final terminating newline.
 impl fmt::Display for Solution {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if f.alternate() {

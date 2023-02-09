@@ -5,33 +5,88 @@ use thiserror::Error;
 
 static DIVIDER: &str = "+-----+-----+-----+";
 
+/// An unsolved Sudoku puzzle.
+///
+/// `Puzzle` instances can be constructed by converting from a grid of `u8`
+/// values using [`TryFrom`]/[`TryInto`] or from a string using
+/// [`FromStr`]/[`str::parse()`].  See the details on the trait implementations
+/// below for more details.
+///
+/// As `Puzzle` implements `Deref<[[u8; 9]; 9]>`, it can be indexed to obtain
+/// the individual rows of the puzzle; "unfilled" cells are represented by 0.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Puzzle([[u8; 9]; 9]); // Unfilled cells are represented by 0
+pub struct Puzzle([[u8; 9]; 9]);
 
-/// Counts the amount of cells (max value 3) of each numeric value that
-/// "obstruct" a given cell
-#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
-struct Obstruction([u8; 9]);
-
-impl Obstruction {
-    fn new() -> Self {
-        Obstruction([0; 9])
-    }
-
-    fn add(&mut self, number: u8) {
-        self.0[usize::from(number) - 1] += 1;
-    }
-
-    fn remove(&mut self, number: u8) {
-        self.0[usize::from(number) - 1] -= 1;
-    }
-
-    fn for_number(&self, number: u8) -> u8 {
-        self.0[usize::from(number) - 1]
-    }
-
-    fn is_full(&self) -> bool {
-        self.0.iter().all(|&x| x == 3)
+impl Puzzle {
+    /// Solve the puzzle.
+    ///
+    /// If the puzzle has multiple solutions, one of them is returned, but
+    /// which one is unspecified.
+    ///
+    /// If the puzzle has no solutions, `None` is returned.
+    pub fn solve(&self) -> Option<Solution> {
+        let mut scratch = InProgress::new(self);
+        let mut i = 0;
+        'iloop: while i < 9 {
+            let mut j = 0;
+            while j < 9 {
+                if let Some(o) = scratch.obstructions[i][j] {
+                    let mut next_test = scratch.puzzle[i][j];
+                    if next_test != 0 {
+                        scratch.remove_obstruction(i, j);
+                        scratch.puzzle[i][j] = 0;
+                    }
+                    next_test += 1;
+                    while next_test <= 9 {
+                        if o.for_number(next_test) == 0 {
+                            scratch.puzzle[i][j] = next_test;
+                            scratch.add_obstruction(i, j);
+                            break;
+                        }
+                        next_test += 1;
+                    }
+                    if next_test > 9 {
+                        // Backtrack
+                        loop {
+                            j = match j.checked_sub(1) {
+                                Some(j2) => j2,
+                                None => {
+                                    // This is where we return None if there's
+                                    // no solution:
+                                    i = i.checked_sub(1)?;
+                                    8
+                                }
+                            };
+                            if let Some(o2) = scratch.obstructions[i][j] {
+                                if !o2.is_full() {
+                                    j = match j.checked_sub(1) {
+                                        Some(j2) => j2,
+                                        None => {
+                                            match i.checked_sub(1) {
+                                                Some(i2) => i = i2,
+                                                None => {
+                                                    // Go back to the start of
+                                                    // the outermost `while`
+                                                    // loop (with i = j = 0)
+                                                    continue 'iloop;
+                                                }
+                                            }
+                                            8
+                                        }
+                                    };
+                                    break;
+                                }
+                                scratch.remove_obstruction(i, j);
+                                scratch.puzzle[i][j] = 0;
+                            }
+                        }
+                    }
+                }
+                j += 1;
+            }
+            i += 1;
+        }
+        Some(Solution(scratch.puzzle))
     }
 }
 
@@ -100,83 +155,58 @@ impl InProgress {
     }
 }
 
-impl Puzzle {
-    pub fn solve(&self) -> Option<Solution> {
-        let mut scratch = InProgress::new(self);
-        let mut i = 0;
-        'iloop: while i < 9 {
-            let mut j = 0;
-            while j < 9 {
-                if let Some(o) = scratch.obstructions[i][j] {
-                    let mut next_test = scratch.puzzle[i][j];
-                    if next_test != 0 {
-                        scratch.remove_obstruction(i, j);
-                        scratch.puzzle[i][j] = 0;
-                    }
-                    next_test += 1;
-                    while next_test <= 9 {
-                        if o.for_number(next_test) == 0 {
-                            scratch.puzzle[i][j] = next_test;
-                            scratch.add_obstruction(i, j);
-                            break;
-                        }
-                        next_test += 1;
-                    }
-                    if next_test > 9 {
-                        // Backtrack
-                        loop {
-                            j = match j.checked_sub(1) {
-                                Some(j2) => j2,
-                                None => {
-                                    // This is where we return None if there's
-                                    // no solution:
-                                    i = i.checked_sub(1)?;
-                                    8
-                                }
-                            };
-                            if let Some(o2) = scratch.obstructions[i][j] {
-                                if !o2.is_full() {
-                                    j = match j.checked_sub(1) {
-                                        Some(j2) => j2,
-                                        None => {
-                                            match i.checked_sub(1) {
-                                                Some(i2) => i = i2,
-                                                None => {
-                                                    // Go back to the start of
-                                                    // the outermost `while`
-                                                    // loop (with i = j = 0)
-                                                    continue 'iloop;
-                                                }
-                                            }
-                                            8
-                                        }
-                                    };
-                                    break;
-                                }
-                                scratch.remove_obstruction(i, j);
-                                scratch.puzzle[i][j] = 0;
-                            }
-                        }
-                    }
-                }
-                j += 1;
-            }
-            i += 1;
-        }
-        Some(Solution(scratch.puzzle))
+/// Counts the amount of cells (max value 3) of each numeric value that
+/// "obstruct" a given cell
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
+struct Obstruction([u8; 9]);
+
+impl Obstruction {
+    fn new() -> Self {
+        Obstruction([0; 9])
+    }
+
+    fn add(&mut self, number: u8) {
+        self.0[usize::from(number) - 1] += 1;
+    }
+
+    fn remove(&mut self, number: u8) {
+        self.0[usize::from(number) - 1] -= 1;
+    }
+
+    fn for_number(&self, number: u8) -> u8 {
+        self.0[usize::from(number) - 1]
+    }
+
+    fn is_full(&self) -> bool {
+        self.0.iter().all(|&x| x == 3)
     }
 }
 
+/// Error type returned when trying to construct a [`Puzzle`] from invalid
+/// input
 #[derive(Debug, Error)]
 pub enum TryIntoPuzzleError {
+    /// Returned when the input contains a cell with a value larger than 9.
+    /// The argument is the value of the cell in question.
     #[error("Cell value {0} is too large")]
     NumTooBig(u8),
+
+    /// Returned when the input grid contains a row that is not exactly 9 cells
+    /// long
     #[error("Row not 9 cells long")]
     BadRowSize,
+
+    /// Returned when the input grid is not exactly 9 rows long
     #[error("Grid not 9 rows long")]
     BadGridSize,
 }
 
+/// Convert a 9×9 grid into a [`Puzzle`].  Cell values must be in the range
+/// `0..=9`, where 0 represents an "unfilled" cell.
+///
+/// # Errors
+///
+/// Fails if any cell has a value larger than 9.
 impl TryFrom<[[u8; 9]; 9]> for Puzzle {
     type Error = TryIntoPuzzleError;
 
@@ -192,6 +222,13 @@ impl TryFrom<[[u8; 9]; 9]> for Puzzle {
     }
 }
 
+/// Convert a slice of `u8` arrays into a [`Puzzle`].  Cell values must be in
+/// the range `0..=9`, where 0 represents an "unfilled" cell.
+///
+/// # Errors
+///
+/// Fails if any cell has a value larger than 9 or if the grid is not exactly
+/// 9×9.
 impl<T: AsRef<[u8]>> TryFrom<&[T]> for Puzzle {
     type Error = TryIntoPuzzleError;
 
@@ -208,6 +245,13 @@ impl<T: AsRef<[u8]>> TryFrom<&[T]> for Puzzle {
     }
 }
 
+/// Convert a [`Vec`] of `u8` arrays into a [`Puzzle`].  Cell values must be in
+/// the range `0..=9`, where 0 represents an "unfilled" cell.
+///
+/// # Errors
+///
+/// Fails if any cell has a value larger than 9 or if the grid is not exactly
+/// 9×9.
 impl<T: AsRef<[u8]>> TryFrom<Vec<T>> for Puzzle {
     type Error = TryIntoPuzzleError;
 
@@ -216,7 +260,45 @@ impl<T: AsRef<[u8]>> TryFrom<Vec<T>> for Puzzle {
     }
 }
 
-// ignores horizontal whitespace and treats 0's and nondigits as unfilled cells
+/// Parse a [`Puzzle`] from a string consisting of nine lines of nine cells
+/// each, where each cell is either a digit in `0..=9` (0 representing
+/// an "unfilled" cell) or any non-space, non-digit character (also
+/// representing an "unfilled" cell).  Horizontal whitespace and blank lines
+/// are ignored.
+///
+/// For example, the following input:
+///
+/// ```text
+/// 000780500
+/// 200650700
+/// 000000630
+/// 010000070
+/// 000506000
+/// 060000020
+/// 087000000
+/// 003017009
+/// 004092000
+/// ```
+///
+/// is parsed the same as this input:
+///
+/// ```text
+/// . . .  7 8 .  5 . .
+/// 2 . .  6 5 .  7 . .
+/// . . .  . . .  6 3 .
+///
+/// . 1 .  . . .  . 7 .
+/// . . .  5 . 6  . . .
+/// . 6 .  . . .  . 2 .
+///
+/// . 8 7  . . .  . . .
+/// . . 3  . 1 7  . . 9
+/// . . 4  . 9 2  . . .
+/// ```
+///
+/// # Errors
+///
+/// Fails if the input grid is not exactly 9×9.
 impl FromStr for Puzzle {
     type Err = TryIntoPuzzleError;
 
@@ -247,6 +329,42 @@ impl Deref for Puzzle {
     }
 }
 
+/// Display a [`Puzzle`] as nine lines of nine cells.
+///
+/// In the default representation, "unfilled" cells are represented by `0`, and
+/// there is no horizontal whitespace, e.g.:
+///
+/// ```text
+/// 003020600
+/// 900305001
+/// 001806400
+/// 008102900
+/// 700000008
+/// 006708200
+/// 002609500
+/// 800203009
+/// 005010300
+/// ```
+///
+/// In the alternate representation (selected with the `#` modifier), a border
+/// is drawn around the grid and between regions, adjacent cells are separated
+/// with a space, and "unfilled" cells are represented by a space, e.g.:
+///
+/// ```text
+/// +-----+-----+-----+
+/// |    3|  2  |6    |
+/// |9    |3   5|    1|
+/// |    1|8   6|4    |
+/// +-----+-----+-----+
+/// |    8|1   2|9    |
+/// |7    |     |    8|
+/// |    6|7   8|2    |
+/// +-----+-----+-----+
+/// |    2|6   9|5    |
+/// |8    |2   3|    9|
+/// |    5|  1  |3    |
+/// +-----+-----+-----+
+/// ```
 impl fmt::Display for Puzzle {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if f.alternate() {
@@ -280,6 +398,13 @@ impl fmt::Display for Puzzle {
     }
 }
 
+/// A solution to a Sudoku puzzle.
+///
+/// `Solution` instances are returned by [`Puzzle::solve`].
+///
+/// As `Solution` implements `Deref<[[u8; 9]; 9]>`, it can be indexed to obtain
+/// the individual rows of the solution.  Alternatively, a `Solution` can be
+/// converted directly to a `[[u8; 9]; 9]` via the [`From`]/[`Into`] traits.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Solution([[u8; 9]; 9]);
 
@@ -297,6 +422,41 @@ impl From<Solution> for [[u8; 9]; 9] {
     }
 }
 
+/// Display a [`Solution`] as nine lines of nine cells.
+///
+/// In the default representation, there is no horizontal whitespace, e.g.:
+///
+/// ```text
+/// 483921657
+/// 967345821
+/// 251876493
+/// 548132976
+/// 729564138
+/// 136798245
+/// 372689514
+/// 814253769
+/// 695417382
+/// ```
+///
+/// In the alternate representation (selected with the `#` modifier), a border
+/// is drawn around the grid and between regions and adjacent cells are
+/// separated with a space, e.g.:
+///
+/// ```text
+/// +-----+-----+-----+
+/// |4 8 3|9 2 1|6 5 7|
+/// |9 6 7|3 4 5|8 2 1|
+/// |2 5 1|8 7 6|4 9 3|
+/// +-----+-----+-----+
+/// |5 4 8|1 3 2|9 7 6|
+/// |7 2 9|5 6 4|1 3 8|
+/// |1 3 6|7 9 8|2 4 5|
+/// +-----+-----+-----+
+/// |3 7 2|6 8 9|5 1 4|
+/// |8 1 4|2 5 3|7 6 9|
+/// |6 9 5|4 1 7|3 8 2|
+/// +-----+-----+-----+
+/// ```
 impl fmt::Display for Solution {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if f.alternate() {

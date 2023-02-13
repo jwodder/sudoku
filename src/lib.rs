@@ -184,7 +184,7 @@ impl Obstruction {
 
 /// Error type returned when trying to construct a [`Puzzle`] from invalid
 /// input
-#[derive(Debug, Error)]
+#[derive(Copy, Clone, Debug, Eq, Error, Hash, PartialEq)]
 pub enum TryIntoPuzzleError {
     /// Returned when the input contains a cell with a value larger than 9.
     /// The argument is the value of the cell in question.

@@ -763,6 +763,101 @@ mod test {
     }
 
     #[test]
+    fn test_try_from_array_with_invalid_cell() {
+        let r = Puzzle::try_from([
+            [0, 0, 3, 0, 2, 0, 6, 0, 0],
+            [9, 0, 0, 3, 0, 50, 0, 0, 11],
+            [0, 0, 13, 8, 0, 6, 42, 0, 0],
+            [0, 0, 8, 1, 0, 2, 9, 0, 0],
+            [7, 0, 0, 0, 0, 0, 0, 0, 8],
+            [0, 0, 6, 7, 0, 8, 2, 0, 0],
+            [0, 0, 2, 6, 0, 9, 5, 0, 0],
+            [8, 0, 0, 2, 0, 3, 0, 0, 9],
+            [0, 0, 5, 0, 1, 0, 3, 0, 0],
+        ]);
+        assert_eq!(r, Err(TryIntoPuzzleError::NumTooBig(50)));
+    }
+
+    #[test]
+    fn test_try_from_slices_with_long_row() {
+        let r = Puzzle::try_from(
+            [
+                [0, 0, 3, 0, 2, 0, 6, 0, 0].as_slice(),
+                [9, 0, 0, 3, 0, 5, 0, 0, 1].as_slice(),
+                [0, 0, 1, 8, 0, 6, 4, 0, 0, 42, 113].as_slice(),
+                [0, 0, 8, 1, 0, 2, 9, 0, 0].as_slice(),
+                [7, 0, 0, 0, 0, 0, 0, 0, 8].as_slice(),
+                [0, 0, 6, 7, 0, 8, 2, 0, 0].as_slice(),
+                [0, 0, 2, 6, 0, 9, 5, 0, 0].as_slice(),
+                [8, 0, 0, 2, 0, 3, 0, 0, 9].as_slice(),
+                [0, 0, 5, 0, 1, 0, 3, 0, 0].as_slice(),
+            ]
+            .as_slice(),
+        );
+        assert_eq!(r, Err(TryIntoPuzzleError::BadRowSize));
+    }
+
+    #[test]
+    fn test_try_from_long_slice_with_short_row() {
+        let r = Puzzle::try_from(
+            [
+                [0, 0, 3, 0, 2, 0, 6, 0, 0].as_slice(),
+                [9, 0, 0, 3, 0, 5, 0, 0, 1].as_slice(),
+                [0, 0, 1, 8, 0, 6, 4].as_slice(),
+                [0, 0, 8, 1, 0, 2, 9, 0, 0].as_slice(),
+                [7, 0, 0, 0, 0, 0, 0, 0, 8].as_slice(),
+                [0, 0, 6, 7, 0, 8, 2, 0, 0].as_slice(),
+                [0, 0, 2, 6, 0, 9, 5, 0, 0].as_slice(),
+                [8, 0, 0, 2, 0, 3, 0, 0, 9].as_slice(),
+                [0, 0, 5, 0, 1, 0, 3, 0, 0].as_slice(),
+                [9, 8, 7, 6, 5, 4, 3, 2, 1].as_slice(),
+                [9, 8, 7, 6, 5, 4, 3, 2, 1].as_slice(),
+            ]
+            .as_slice(),
+        );
+        assert_eq!(r, Err(TryIntoPuzzleError::BadRowSize));
+    }
+
+    #[test]
+    fn test_try_from_long_slice() {
+        let r = Puzzle::try_from(
+            [
+                [0, 0, 3, 0, 2, 0, 6, 0, 0].as_slice(),
+                [9, 0, 0, 3, 0, 5, 0, 0, 1].as_slice(),
+                [0, 0, 1, 8, 0, 6, 4, 0, 0].as_slice(),
+                [0, 0, 8, 1, 0, 2, 9, 0, 0].as_slice(),
+                [7, 0, 0, 0, 0, 0, 0, 0, 8].as_slice(),
+                [0, 0, 6, 7, 0, 8, 2, 0, 0].as_slice(),
+                [0, 0, 2, 6, 0, 9, 5, 0, 0].as_slice(),
+                [8, 0, 0, 2, 0, 3, 0, 0, 9].as_slice(),
+                [0, 0, 5, 0, 1, 0, 3, 0, 0].as_slice(),
+                [9, 8, 7, 6, 5, 4, 3, 2, 1].as_slice(),
+                [9, 8, 7, 6, 5, 4, 3, 2, 1].as_slice(),
+            ]
+            .as_slice(),
+        );
+        assert_eq!(r, Err(TryIntoPuzzleError::BadGridSize));
+    }
+
+    #[test]
+    fn test_try_from_short_slice() {
+        let r = Puzzle::try_from(
+            [
+                [0, 0, 3, 0, 2, 0, 6, 0, 0].as_slice(),
+                [9, 0, 0, 3, 0, 5, 0, 0, 1].as_slice(),
+                [0, 0, 1, 8, 0, 6, 4, 0, 0].as_slice(),
+                [0, 0, 8, 1, 0, 2, 9, 0, 0].as_slice(),
+                [7, 0, 0, 0, 0, 0, 0, 0, 8].as_slice(),
+                [0, 0, 6, 7, 0, 8, 2, 0, 0].as_slice(),
+                [0, 0, 2, 6, 0, 9, 5, 0, 0].as_slice(),
+                [8, 0, 0, 2, 0, 3, 0, 0, 9].as_slice(),
+            ]
+            .as_slice(),
+        );
+        assert_eq!(r, Err(TryIntoPuzzleError::BadGridSize));
+    }
+
+    #[test]
     fn test_parse_puzzle() {
         let s = concat!(
             "000780500\n",

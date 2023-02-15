@@ -26,65 +26,39 @@ impl Puzzle {
     /// If the puzzle has no solutions, `None` is returned.
     pub fn solve(&self) -> Option<Solution> {
         let mut scratch = InProgress::new(self);
-        let mut i = 0;
-        'iloop: while i < 9 {
-            let mut j = 0;
-            while j < 9 {
-                if let Some(o) = scratch.obstructions[i][j] {
-                    let mut next_test = scratch.puzzle[i][j];
-                    if next_test != 0 {
-                        scratch.remove_obstruction(i, j);
-                        scratch.puzzle[i][j] = 0;
+        let mut coords = Coords::new();
+        'iloop: while let Some((i, j)) = coords.get() {
+            if let Some(o) = scratch.obstructions[i][j] {
+                let mut next_test = scratch.puzzle[i][j];
+                if next_test != 0 {
+                    scratch.remove_obstruction(i, j);
+                    scratch.puzzle[i][j] = 0;
+                }
+                next_test += 1;
+                while next_test <= 9 {
+                    if o.for_number(next_test) == 0 {
+                        scratch.puzzle[i][j] = next_test;
+                        scratch.add_obstruction(i, j);
+                        break;
                     }
                     next_test += 1;
-                    while next_test <= 9 {
-                        if o.for_number(next_test) == 0 {
-                            scratch.puzzle[i][j] = next_test;
-                            scratch.add_obstruction(i, j);
-                            break;
-                        }
-                        next_test += 1;
-                    }
-                    if next_test > 9 {
-                        // Backtrack
-                        loop {
-                            j = match j.checked_sub(1) {
-                                Some(j2) => j2,
-                                None => {
-                                    // This is where we return None if there's
-                                    // no solution:
-                                    i = i.checked_sub(1)?;
-                                    8
-                                }
-                            };
-                            if let Some(o2) = scratch.obstructions[i][j] {
-                                if !o2.is_full() {
-                                    j = match j.checked_sub(1) {
-                                        Some(j2) => j2,
-                                        None => {
-                                            match i.checked_sub(1) {
-                                                Some(i2) => i = i2,
-                                                None => {
-                                                    // Go back to the start of
-                                                    // the outermost `while`
-                                                    // loop (with i = j = 0)
-                                                    continue 'iloop;
-                                                }
-                                            }
-                                            8
-                                        }
-                                    };
-                                    break;
-                                }
-                                scratch.remove_obstruction(i, j);
-                                scratch.puzzle[i][j] = 0;
+                }
+                if next_test > 9 {
+                    // Backtrack
+                    loop {
+                        // This is where we return None if there's no solution:
+                        let (i2, j2) = coords.retreat()?;
+                        if let Some(o2) = scratch.obstructions[i2][j2] {
+                            if !o2.is_full() {
+                                continue 'iloop;
                             }
+                            scratch.remove_obstruction(i2, j2);
+                            scratch.puzzle[i2][j2] = 0;
                         }
                     }
                 }
-                j += 1;
             }
-            i += 1;
+            coords.advance();
         }
         Some(Solution(scratch.puzzle))
     }
@@ -179,6 +153,46 @@ impl Obstruction {
 
     fn is_full(&self) -> bool {
         self.0.iter().all(|&x| x == 3)
+    }
+}
+
+struct Coords(Option<(usize, usize)>);
+
+impl Coords {
+    fn new() -> Coords {
+        Coords(Some((0, 0)))
+    }
+
+    fn get(&self) -> Option<(usize, usize)> {
+        self.0
+    }
+
+    fn advance(&mut self) {
+        if let Some((mut i, mut j)) = self.0 {
+            j += 1;
+            if j >= 9 {
+                i += 1;
+                j = 0;
+            }
+            if i >= 9 {
+                self.0 = None;
+            } else {
+                self.0 = Some((i, j));
+            }
+        }
+    }
+
+    fn retreat(&mut self) -> Option<(usize, usize)> {
+        let (mut i, mut j) = self.0?;
+        j = match j.checked_sub(1) {
+            Some(j2) => j2,
+            None => {
+                i = i.checked_sub(1)?;
+                8
+            }
+        };
+        self.0 = Some((i, j));
+        Some((i, j))
     }
 }
 

@@ -45,9 +45,7 @@ impl Puzzle {
                 }
                 if next_test > 9 {
                     // Backtrack
-                    loop {
-                        // This is where we return None if there's no solution:
-                        let (i2, j2) = coords.retreat()?;
+                    while let Some((i2, j2)) = coords.retreat() {
                         if let Some(o2) = scratch.obstructions[i2][j2] {
                             if !o2.is_full() {
                                 continue 'iloop;
@@ -56,6 +54,7 @@ impl Puzzle {
                             scratch.puzzle[i2][j2] = 0;
                         }
                     }
+                    return None;
                 }
             }
             coords.advance();

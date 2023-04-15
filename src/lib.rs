@@ -201,16 +201,16 @@ impl Coords {
 pub enum TryIntoPuzzleError {
     /// Returned when the input contains a cell with a value larger than 9.
     /// The argument is the value of the cell in question.
-    #[error("Cell value {0} is too large")]
+    #[error("cell value {0} is too large")]
     NumTooBig(u8),
 
     /// Returned when the input grid contains a row that is not exactly 9 cells
     /// long
-    #[error("Row not 9 cells long")]
+    #[error("row not 9 cells long")]
     BadRowSize,
 
     /// Returned when the input grid is not exactly 9 rows long
-    #[error("Grid not 9 rows long")]
+    #[error("grid not 9 rows long")]
     BadGridSize,
 }
 

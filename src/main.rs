@@ -1,9 +1,6 @@
 use anyhow::Context;
 use clap::Parser;
-use either::Either;
-use std::fs::File;
-use std::io::{read_to_string, stdin};
-use std::path::PathBuf;
+use patharg::InputArg;
 use std::process::ExitCode;
 use sudoku::Puzzle;
 
@@ -16,18 +13,15 @@ struct Arguments {
     pretty: bool,
 
     /// File containing Sudoku puzzle to solve [default: read from stdin]
-    #[clap(default_value_os_t = PathBuf::from("-"), hide_default_value = true)]
-    infile: PathBuf,
+    #[clap(default_value_t, hide_default_value = true)]
+    infile: InputArg,
 }
 
 fn main() -> Result<ExitCode, anyhow::Error> {
     let args = Arguments::parse();
-    let infile = if args.infile == PathBuf::from("-") {
-        Either::Left(stdin())
-    } else {
-        Either::Right(File::open(args.infile).context("Error opening input file")?)
-    };
-    let puzzle = read_to_string(infile)
+    let puzzle = args
+        .infile
+        .read_to_string()
         .context("Error reading input")?
         .parse::<Puzzle>()
         .context("Invalid input")?;

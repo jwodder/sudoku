@@ -201,6 +201,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b7820b9daea5457c9f21c69448905d723fbd21136ccf521748f23fd49e723ee"
 
 [[package]]
+name = "patharg"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c0dfebf612555d7aaf1d420b6f6a902ed2f3a9d0e503e06b4ed7fddae3951fb1"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "predicates"
 version = "2.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -326,7 +335,7 @@ dependencies = [
  "anyhow",
  "assert_cmd",
  "clap",
- "either",
+ "patharg",
  "tempfile",
  "thiserror",
 ]

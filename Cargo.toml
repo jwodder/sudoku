@@ -11,8 +11,8 @@ publish = false
 
 [dependencies]
 anyhow = "1.0.69"
-clap = { version = "4.1.4", default-features = false, features = ["derive", "error-context", "help", "std", "suggestions", "usage", "wrap_help"] }
-patharg = "0.1.0"
+lexopt = "0.3.0"
+patharg = "0.3.0"
 thiserror = "1.0.38"
 
 [dev-dependencies]

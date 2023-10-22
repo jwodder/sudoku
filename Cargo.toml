@@ -2,7 +2,7 @@
 name = "sudoku"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.65"
+rust-version = "1.70"
 description = "Backtracking Sudoku solver in Rust"
 authors = ["John Thorvald Wodder II <sudoku@varonathe.org>"]
 repository = "https://github.com/jwodder/sudoku"

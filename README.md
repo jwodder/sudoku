@@ -9,16 +9,16 @@ Sudoku puzzle using a basic backtracking algorithm.
 Usage
 =====
 
-    sudoku [--pretty|-P] [<infile>]
+    sudoku [-P|--pretty] [<infile>]
 
 Solve the Sudoku puzzle contained in the given file, or passed on standard
 input if no filename is given.  The puzzle must be in the form of nine lines of
-nine values each, where "unfilled" cells are represented by either `0` or any
+nine numbers each, where "unfilled" cells are represented by either `0` or any
 non-digit, non-space character; horizontal whitespace and blank lines are
 ignored.
 
 By default, the solution is output as nine lines of nine numbers with no
-horizontal whitespace or other styling, but supplying the `--pretty` or `-P`
+horizontal whitespace or other styling, but supplying the `-P`/`--pretty`
 option will cause the solution to be rendered with borders around the grid &
 between regions and with spaces between adjacent values.
 

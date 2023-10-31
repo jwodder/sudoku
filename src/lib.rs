@@ -321,7 +321,7 @@ impl FromStr for Puzzle {
             let mut row = Vec::with_capacity(9);
             for c in line.chars() {
                 if let Some(x) = c.to_digit(10) {
-                    row.push(u8::try_from(x).unwrap());
+                    row.push(u8::try_from(x).expect("base-10 digits should fit in a u8"));
                 } else if !c.is_whitespace() {
                     row.push(0);
                 }

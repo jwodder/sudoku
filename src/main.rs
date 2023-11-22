@@ -40,19 +40,16 @@ impl Command {
                     .context("Error reading input")?
                     .parse::<Puzzle>()
                     .context("Invalid input")?;
-                match puzzle.solve() {
-                    Some(s) => {
-                        if pretty {
-                            println!("{s:#}");
-                        } else {
-                            println!("{s}");
-                        }
-                        Ok(ExitCode::SUCCESS)
+                if let Some(s) = puzzle.solve() {
+                    if pretty {
+                        println!("{s:#}");
+                    } else {
+                        println!("{s}");
                     }
-                    None => {
-                        eprintln!("No solution");
-                        Ok(ExitCode::FAILURE)
-                    }
+                    Ok(ExitCode::SUCCESS)
+                } else {
+                    eprintln!("No solution");
+                    Ok(ExitCode::FAILURE)
                 }
             }
             Command::Help => {

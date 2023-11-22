@@ -183,12 +183,11 @@ impl Coords {
 
     fn retreat(&mut self) -> Option<(usize, usize)> {
         let (mut i, mut j) = self.0?;
-        j = match j.checked_sub(1) {
-            Some(j2) => j2,
-            None => {
-                i = i.checked_sub(1)?;
-                8
-            }
+        j = if let Some(j2) = j.checked_sub(1) {
+            j2
+        } else {
+            i = i.checked_sub(1)?;
+            8
         };
         self.0 = Some((i, j));
         Some((i, j))
@@ -381,7 +380,7 @@ impl Deref for Puzzle {
 ///
 /// Both forms lack a final terminating newline.
 impl fmt::Display for Puzzle {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if f.alternate() {
             for y in 0..9 {
                 if y % 3 == 0 {
@@ -475,7 +474,7 @@ impl From<Solution> for [[u8; 9]; 9] {
 ///
 /// Both forms lack a final terminating newline.
 impl fmt::Display for Solution {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if f.alternate() {
             for y in 0..9 {
                 if y % 3 == 0 {

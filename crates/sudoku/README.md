@@ -4,5 +4,5 @@
 [![Minimum Supported Rust Version](https://img.shields.io/badge/MSRV-1.70-orange)](https://www.rust-lang.org)
 [![MIT License](https://img.shields.io/github/license/jwodder/sudoku.svg)](https://opensource.org/licenses/MIT)
 
-This is a Rust library and command-line program for solving a classic 9×9
-Sudoku puzzle using a basic backtracking algorithm.
+This is a Rust library for solving a classic 9×9 Sudoku puzzle using a basic
+backtracking algorithm.  See the library documentation for more information.

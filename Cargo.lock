@@ -233,12 +233,19 @@ dependencies = [
 name = "sudoku"
 version = "0.1.0"
 dependencies = [
+ "thiserror",
+]
+
+[[package]]
+name = "sudoku-cli"
+version = "0.1.0"
+dependencies = [
  "anyhow",
  "assert_cmd",
  "lexopt",
  "patharg",
+ "sudoku",
  "tempfile",
- "thiserror",
 ]
 
 [[package]]

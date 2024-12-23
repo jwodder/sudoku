@@ -1,25 +1,15 @@
-[package]
-name = "sudoku"
-version = "0.1.0"
+[workspace]
+members = ["crates/*"]
+resolver = "2"
+
+[workspace.package]
 edition = "2021"
 rust-version = "1.70"
-description = "Backtracking Sudoku solver in Rust"
 authors = ["John Thorvald Wodder II <sudoku@varonathe.org>"]
 repository = "https://github.com/jwodder/sudoku"
 license = "MIT"
-publish = false
 
-[dependencies]
-anyhow = "1.0.69"
-lexopt = "0.3.0"
-patharg = "0.3.0"
-thiserror = "1.0.38"
-
-[dev-dependencies]
-assert_cmd = "2.0.8"
-tempfile = "3.3.0"
-
-[lints.rust]
+[workspace.lints.rust]
 # Lint groups:
 future_incompatible = { level = "deny", priority = -1 }
 refining_impl_trait = { level = "deny", priority = -1 }
@@ -98,7 +88,7 @@ unused_comparisons = "deny"
 useless_ptr_null_checks = "deny"
 while_true = "deny"
 
-[lints.rustdoc]
+[workspace.lints.rustdoc]
 bare_urls = "deny"
 broken_intra_doc_links = "deny"
 invalid_codeblock_attributes = "deny"
@@ -108,7 +98,7 @@ private_intra_doc_links = "deny"
 redundant_explicit_links = "deny"
 unescaped_backticks = "deny"
 
-[lints.clippy]
+[workspace.lints.clippy]
 # Deny all warn-by-default lints:
 all = { level = "deny", priority = -1 }
 

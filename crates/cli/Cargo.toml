@@ -1,0 +1,27 @@
+[package]
+name = "sudoku-cli"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+description = "Backtracking Sudoku solver CLI"
+authors.workspace = true
+repository.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+anyhow = "1.0.69"
+lexopt = "0.3.0"
+patharg = "0.3.0"
+sudoku = { path = "../sudoku" }
+
+[dev-dependencies]
+assert_cmd = "2.0.8"
+tempfile = "3.3.0"
+
+[[bin]]
+name = "sudoku"
+path = "src/main.rs"
+
+[lints]
+workspace = true

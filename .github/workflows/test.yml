@@ -52,11 +52,14 @@ jobs:
       - name: Activate cache
         uses: Swatinem/rust-cache@v2
 
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
+
       - name: Build crate
-        run: cargo build --workspace --all-targets --verbose
+        run: cargo hack --workspace --feature-powerset build --workspace --all-targets --verbose
 
       - name: Test crate
-        run: cargo test --workspace --verbose
+        run: cargo hack --workspace --feature-powerset test --workspace --verbose
 
   coverage:
     # This is separate from the main tests because cargo-llvm-cov doesn't run
@@ -105,8 +108,14 @@ jobs:
       - name: Activate cache
         uses: Swatinem/rust-cache@v2
 
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
+
       - name: Check code
-        run: cargo clippy --workspace --all-features --all-targets -- -Dwarnings
+        run: cargo hack --workspace --feature-powerset clippy -- -Dwarnings
+
+      - name: Check tests & examples
+        run: cargo hack --workspace --feature-powerset clippy --tests --examples -- -Dwarnings
 
       - name: Check formatting
         run: cargo fmt --all --check
@@ -128,6 +137,6 @@ jobs:
       - name: Check docs
         run: cargo doc -p sudoku --no-deps --all-features
         env:
-          RUSTDOCFLAGS: -Dwarnings
+          RUSTDOCFLAGS: -Dwarnings --cfg docsrs
 
 # vim:set et sts=2:

@@ -56,10 +56,10 @@ jobs:
         uses: taiki-e/install-action@cargo-hack
 
       - name: Build crate
-        run: cargo hack --workspace --feature-powerset build --workspace --all-targets --verbose
+        run: cargo hack --workspace --feature-powerset build --all-targets --verbose
 
       - name: Test crate
-        run: cargo hack --workspace --feature-powerset test --workspace --verbose
+        run: cargo hack --workspace --feature-powerset test --verbose
 
   coverage:
     # This is separate from the main tests because cargo-llvm-cov doesn't run

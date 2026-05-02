@@ -53,7 +53,7 @@ impl Command {
                 }
             }
             Command::Help => {
-                println!("Usage: sudoku [-P|--pretty] [<INFILE>]");
+                println!("Usage: sudoku [-P|--pretty] [<infile>]");
                 println!();
                 println!("Solve a Sudoku puzzle");
                 println!();

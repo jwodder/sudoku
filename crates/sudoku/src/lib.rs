@@ -382,13 +382,12 @@ impl Deref for Puzzle {
 impl fmt::Display for Puzzle {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if f.alternate() {
-            for y in 0..9 {
+            for (y, row) in self.0.iter().enumerate() {
                 if y % 3 == 0 {
                     writeln!(f, "{DIVIDER}")?;
                 }
-                for x in 0..9 {
+                for (x, &c) in row.iter().enumerate() {
                     write!(f, "{}", if x % 3 == 0 { '|' } else { ' ' })?;
-                    let c = self.0[y][x];
                     if c == 0 {
                         write!(f, " ")?;
                     } else {
@@ -399,12 +398,12 @@ impl fmt::Display for Puzzle {
             }
             write!(f, "{DIVIDER}")?;
         } else {
-            for y in 0..9 {
+            for (y, row) in self.0.iter().enumerate() {
                 if y > 0 {
                     writeln!(f)?;
                 }
-                for x in 0..9 {
-                    write!(f, "{}", self.0[y][x])?;
+                for &c in row {
+                    write!(f, "{c}")?;
                 }
             }
         }
@@ -476,23 +475,23 @@ impl From<Solution> for [[u8; 9]; 9] {
 impl fmt::Display for Solution {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if f.alternate() {
-            for y in 0..9 {
+            for (y, row) in self.0.iter().enumerate() {
                 if y % 3 == 0 {
                     writeln!(f, "{DIVIDER}")?;
                 }
-                for x in 0..9 {
-                    write!(f, "{}{}", if x % 3 == 0 { '|' } else { ' ' }, self.0[y][x])?;
+                for (x, &c) in row.iter().enumerate() {
+                    write!(f, "{}{}", if x % 3 == 0 { '|' } else { ' ' }, c)?;
                 }
                 writeln!(f, "|")?;
             }
             write!(f, "{DIVIDER}")?;
         } else {
-            for y in 0..9 {
+            for (y, row) in self.0.iter().enumerate() {
                 if y > 0 {
                     writeln!(f)?;
                 }
-                for x in 0..9 {
-                    write!(f, "{}", self.0[y][x])?;
+                for &c in row {
+                    write!(f, "{c}")?;
                 }
             }
         }
